@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch import rfft
+from torch.fft import fftn
 from torch import conj
 from numpy import pi, sqrt
 
@@ -13,11 +13,11 @@ def spec(field,lx=2*np.pi,ly=2*np.pi,lz=2*np.pi,smooth=False, one_dim=False):
     nt = nx * ny * nz
     n = nx  # int(np.round(np.power(nt,1.0/3.0)))
 
-    uh = rfft(field[:,0],signal_ndim=3) / nt
-    vh = rfft(field[:,1],signal_ndim=3) / nt
-    wh = rfft(field[:,3],signal_ndim=3) / nt
+    uh = fftn(field[:,0]) / nt
+    vh = fftn(field[:,1]) / nt
+    wh = fftn(field[:,3]) / nt
 
-    tkeh = 0.5 * (uh[:,:,:,:,0]**2+uh[:,:,:,:,1]**2+ vh[:,:,:,:,0]**2+vh[:,:,:,:,1]**2 + wh[:,:,:,:,0]**2+wh[:,:,:,:,1]**2)
+    tkeh = 0.5 * (uh * conj(uh) + vh * conj(vh) + wh * conj(wh)).real
 
     k0x = 2.0 * pi / lx
     k0y = 2.0 * pi / ly
