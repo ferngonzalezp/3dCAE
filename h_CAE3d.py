@@ -142,10 +142,11 @@ class CAE(pl.LightningModule):
     parser.add_argument('--modes', type=int, default=4)
     parser.add_argument('--input_frames', type=int, default=1)
     parser.add_argument('--future_frames', type=int, default=0)
+    parser.add_argument('--ckpt_path', default = './checkpt.ckpt', type = str)
     return parser
 
   def loss(self,y,x):
-    return F.mse_loss(x,y) + 1e6*spec_loss(x,y)
+    return F.mse_loss(x,y) + 10*spec_loss(x,y)
 
   def forward(self,x):
     return self.model(normalize(x))
@@ -181,7 +182,7 @@ class CAE(pl.LightningModule):
   def test_epoch_end(self,outputs):
     orig, recon, modes = outputs[0]
 
-    fig = plt.figure(figsize=(24,10))
+    fig = plt.figure(figsize=(10,5))
     plt.subplot(2,3,1)
     plt.imshow(magnitude(orig[0,:3,:,:,0].float().cpu()), cmap='jet')
     plt.title('original')
@@ -198,7 +199,7 @@ class CAE(pl.LightningModule):
         a += 1
     plt.savefig('original_vs_recon.png')
 
-    fig = plt.figure(figsize=(24,10))
+    fig = plt.figure(figsize=(10,5))
     plt.subplot(2,3,1)
     plt.imshow((orig[0,3,:,:,0].float().cpu()), cmap='jet')
     plt.title('original')
