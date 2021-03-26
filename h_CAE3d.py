@@ -35,7 +35,7 @@ class encoder3d(nn.Module):
     else:
       out_chan = in_chan
     layers.append(nn.Conv3d(in_chan,out_chan,4,stride=2,padding=1))
-    layers.append(nn.ReLU())
+    layers.append(nn.Tanh())
     in_chan = out_chan
     if in_chan != latent_features:
       out_chan = in_chan*2
@@ -49,7 +49,7 @@ class encoder3d(nn.Module):
           pool_kernel[j] = 3
           pool_stride[j] = 1 
       layers.append(nn.Conv3d(in_chan,out_chan,kernel_size=tuple(pool_kernel),stride=tuple(pool_stride),padding=1))
-      layers.append(nn.ReLU())
+      layers.append(nn.Tanh())
       in_chan = out_chan
       if in_chan != latent_features:
         out_chan = in_chan*2
@@ -71,7 +71,7 @@ class decoder3d(nn.Module):
     scale_factor = [2,2,2]
     layers.append(self.deconv(latent_features,latent_features))
     layers.append(nn.BatchNorm3d(latent_features))
-    layers.append(nn.ReLU())
+    layers.append(nn.Tanh())
     in_chan = latent_features
     if in_chan >= 8:
       out_chan = in_chan//2
@@ -83,12 +83,13 @@ class decoder3d(nn.Module):
           scale_factor[j] = 1
       layers.append(self.deconv(in_chan,out_chan,stride=tuple(scale_factor)))
       layers.append(nn.BatchNorm3d(out_chan))
-      layers.append(nn.ReLU())
+      layers.append(nn.Tanh())
       in_chan = out_chan
       if in_chan >= 8:
         out_chan = in_chan//2
     layers.append(self.deconv(in_chan,self.output_channels,stride=scale_factor))
-    layers.append(nn.ReLU())
+    layers.append(nn.BatchNorm3d(self.output_channels))
+    layers.append(nn.Tanh())
     layers.append(nn.Conv3d(self.output_channels,self.output_channels,1,bias=True))
     return layers
 
@@ -149,7 +150,7 @@ class CAE(pl.LightningModule):
     return F.mse_loss(x,y) + 10*spec_loss(x,y)
 
   def forward(self,x):
-    return self.model(normalize(x))
+    return self.model((x))
   
   def predict(self,x):
     return torch.sum(torch.stack(self(x)[0]),dim=0)
