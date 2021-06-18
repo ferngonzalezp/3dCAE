@@ -127,8 +127,7 @@ class h_cae(nn.Module):
 class CAE(pl.LightningModule):
   def __init__(self,hparams):
     super().__init__()
-    self.hparams = hparams
-    self.save_hyperparameters()
+    self.save_hyperparameters(hparams)
     self.model = h_cae(self.hparams.latent_features, self.hparams.input_dim, self.hparams.output_dim, self.hparams.modes)
     self.model.apply(weights_init)
 
@@ -139,8 +138,8 @@ class CAE(pl.LightningModule):
     parser.add_argument('--lr', type=float, default=0.0002)
     parser.add_argument('--latent_features', type=int, default=16)
     parser.add_argument('--input_dim', nargs='+', type=int, default=[128,128,128])
-    parser.add_argument('--output_dim', nargs='+', type=int, default=[32,32,1])
-    parser.add_argument('--modes', type=int, default=4)
+    parser.add_argument('--output_dim', nargs='+', type=int, default=[16,16,16])
+    parser.add_argument('--modes', type=int, default=1)
     parser.add_argument('--input_frames', type=int, default=1)
     parser.add_argument('--future_frames', type=int, default=0)
     parser.add_argument('--ckpt_path', default = './checkpt.ckpt', type = str)
@@ -176,8 +175,8 @@ class CAE(pl.LightningModule):
     orig = (batch.squeeze(1))
     recon = self.predict(orig)
     modes, _ = self(orig)
-    val_loss = self.loss(orig,recon)
-    self.log('val_loss', val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+    val_loss = torch.sqrt(F.mse_loss(orig,recon)/torch.mean(orig**2))
+    self.log('test_loss', val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
     return orig, recon, modes
 
   def test_epoch_end(self,outputs):

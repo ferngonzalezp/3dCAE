@@ -62,7 +62,7 @@ def hit(output_len):
       x = None
       field = torch.cat(field,dim=0)
       train_idx = 4*field.shape[0]//5
-      field, val_data = (mydataset(field[0:train_idx], transform=transform3d()), mydataset(field[train_idx:]))
+      field, val_data = (mydataset(field[0:train_idx]), mydataset(field[train_idx:]))
       return field, val_data
       
 class hit_dm(LightningDataModule):
@@ -79,12 +79,12 @@ class hit_dm(LightningDataModule):
     self.val_data  = dataset[1]
 
   def train_dataloader(self):
-    return DataLoader(self.train_data, batch_size=self.hparams.batch_size, num_workers=8,shuffle=True)
+    return DataLoader(self.train_data, batch_size=self.hparams.batch_size, num_workers=4,shuffle=True)
 
   def val_dataloader(self):
-    return DataLoader(self.val_data, batch_size=self.hparams.batch_size, num_workers=8)
+    return DataLoader(self.val_data, batch_size=self.hparams.batch_size, num_workers=4)
 
   def test_dataloader(self):
-    return DataLoader(self.val_data, batch_size=self.hparams.batch_size, num_workers=8)
+    return DataLoader(self.val_data, batch_size=self.hparams.batch_size, num_workers=4)
 
 
